@@ -102,7 +102,7 @@ public class CreditsScreen extends Screen {
 		}
 	}
 	public void tick() {
-		if (time > ((this.credits.size() * 10) + this.height)) if (Data.Resources.minecraft != null) Data.Resources.minecraft.m_6408915(this.parent);
+		if (time > ((this.credits.size() * 10) + this.height) && Data.Resources.minecraft != null) Data.Resources.minecraft.m_6408915(this.parent);
 		else time += (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) ? (Keyboard.isKeyDown(Keyboard.KEY_UP) ? -4 : 4) : (Keyboard.isKeyDown(Keyboard.KEY_UP) ? -1 : 1);
 	}
 }

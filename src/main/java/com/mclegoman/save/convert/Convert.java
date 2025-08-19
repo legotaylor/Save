@@ -86,7 +86,7 @@ public class Convert {
 			short height = SaveConfig.instance.conversionSettings.height.value().shortValue();
 			short length = SaveConfig.instance.conversionSettings.length.value().shortValue();
 			short width = SaveConfig.instance.conversionSettings.width.value().shortValue();
-			final NbtCompound[] playerData = new NbtCompound[]{null};
+			final NbtCompound[] playerData = new NbtCompound[]{};
 			for (Field field : Reader.read(input).getFields()) {
 				if (field.getFieldName().equals("createTime")) {
 					seed = (long) field.getField();

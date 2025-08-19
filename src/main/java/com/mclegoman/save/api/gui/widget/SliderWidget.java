@@ -23,11 +23,13 @@ public class SliderWidget extends ButtonWidget {
 	public SliderWidget(int i, int j, int k, int l, int m, String string, double value, double valueMultiplier) {
 		super(i, j, k, l, m, string);
 		this.string = string;
+		this.value = value;
 		this.valueMultiplier = valueMultiplier;
 	}
 	public SliderWidget(int i, int j, int k, String string, double value, double valueMultiplier) {
 		super(i, j, k, string);
 		this.string = string;
+		this.value = value;
 		this.valueMultiplier = valueMultiplier;
 	}
 	public void setValueFromMouse(double mouseX) {
