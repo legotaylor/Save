@@ -61,7 +61,7 @@ public abstract class MinecraftClientMixin implements SaveModMinecraft {
 		this.m_6408915(screen);
 	}
 	public void save$save() {
-		((SaveModWorld)this.f_5854988).waitIfSaving();
+		((SaveModWorld)this.f_5854988).save();
 	}
 	public void save$set(SaveModWorld world) {
 		try {

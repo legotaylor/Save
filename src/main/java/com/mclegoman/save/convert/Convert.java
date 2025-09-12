@@ -11,6 +11,7 @@ import com.mclegoman.save.api.exception.ConvertFailException;
 import com.mclegoman.save.api.gui.screen.ConfirmScreen;
 import com.mclegoman.save.api.gui.screen.InfoScreen;
 import com.mclegoman.save.classicexplorer.fields.*;
+import com.mclegoman.save.classicexplorer.fields.Class;
 import com.mclegoman.save.classicexplorer.io.Reader;
 import com.mclegoman.save.config.SaveConfig;
 import com.mclegoman.save.data.Data;
@@ -36,6 +37,7 @@ public class Convert {
 		ConvertDialog convertDialog = new ConvertDialog(minecraft, parent, slot);
 		convertDialog.start();
 	}
+
 	protected static void process(C_5664496 minecraft, Screen parent, final int slot, final File input) {
 		Data.getVersion().sendToLog(LogType.INFO, "Converting '" + input.getName() + "' to Alpha save format!");
 		try {
@@ -47,14 +49,17 @@ public class Convert {
 			error(minecraft, parent, error.getLocalizedMessage());
 		}
 	}
+
 	private static void select(C_5664496 minecraft, Screen parent, final String worldName, final File input) {
 		// This function is run when we can't work out what level format we're converting.
 		minecraft.m_6408915(new ConfirmScreen(new ConvertWorldInfoScreen(parent, "Converting world...", worldName, input), "Converting world...", "What level format are you converting from?", 0, "Classic", "Indev"));
 	}
+
 	private static void convert(C_5664496 minecraft, Version version, Screen parent, final String worldName, final File input) {
 		// This function starts the conversion process by asking the user whether they want player data to be converted.
 		minecraft.m_6408915(new ConfirmScreen(new ConvertWorldInfoScreen(version, parent, "Converting " + version.getName() + " world...", worldName, input), "Do you want to keep your player data?", "This includes your inventory, and location!", 1));
 	}
+
 	protected static void result(C_5664496 minecraft, Version version, Screen parent, final String worldName, final File input, final int id, final boolean value) {
 		// 0: Version Type
 		if (id == 0) convert(minecraft, version, parent, worldName, input);
@@ -67,12 +72,14 @@ public class Convert {
 			else error(minecraft, parent, "Invalid version type!");
 		}
 	}
+
 	protected static void result(C_5664496 minecraft, Screen parent, final String worldName, final int id, final int value, final short width, final short height, final short length, final NbtCompound nbtCompound, final NbtCompound player, final WorldData worldData) {
 		// 0: Classic Y Offset
 		if (id == 0) convertClassicFinish(minecraft, parent, worldName, width, height, length, worldData.blocks, player, worldData.time, worldData.seed, worldData.spawnX, worldData.spawnY, worldData.spawnZ, value);
 		// 1: Indev Y Offset
 		if (id == 1) convertIndevFinish(minecraft, parent, worldName, width, height, length, nbtCompound, player, value);
 	}
+
 	private static void convertClassic(C_5664496 minecraft, Screen parent, final String worldName, final boolean convertPlayerData, final File input) {
 		try {
 			setOverlay("Converting level", "Reading data...");
@@ -86,41 +93,54 @@ public class Convert {
 			short height = SaveConfig.instance.conversionSettings.height.value().shortValue();
 			short length = SaveConfig.instance.conversionSettings.length.value().shortValue();
 			short width = SaveConfig.instance.conversionSettings.width.value().shortValue();
-			final NbtCompound[] playerData = new NbtCompound[]{};
 			for (Field field : Reader.read(input).getFields()) {
-				if (field.getFieldName().equals("createTime")) {
-					seed = (long) field.getField();
-				} else if (field.getFieldName().equals("xSpawn")) {
-					spawnX = (int) field.getField();
-				} else if (field.getFieldName().equals("ySpawn")) {
-					spawnY = (int) field.getField();
-				} else if (field.getFieldName().equals("zSpawn")) {
-					spawnZ = (int) field.getField();
-				} else if (field.getFieldName().equals("tickCount")) {
-					time = (int) field.getField();
-				} else if (field.getFieldName().equals("blocks")) {
-					blocks = ((BlocksField)field).getBlocks();
-				} else if (field.getFieldName().equals("blockMap")) {
-					blockMap = ((ClassField) field);
-				} else if (field.getFieldName().equals("width")) {
-					// We get the short value of the stringified value as it could either be a short or an int, depending on the version it was saved in.
-					width = Short.parseShort(String.valueOf(field.getField()));
-				} else if (field.getFieldName().equals("height")) {
-					// We get the short value of the stringified value as it could either be a short or an int, depending on the version it was saved in.
-					length = Short.parseShort(String.valueOf(field.getField())); // Was changed from "height" to "length" in Indev.
-				} else if (field.getFieldName().equals("depth")) {
-					// We get the short value of the stringified value as it could either be a short or an int, depending on the version it was saved in.
-					height = Short.parseShort(String.valueOf(field.getField())); // Was changed from "depth" to "height" in Indev.
-				}
+                switch (field.getFieldName()) {
+                    case "createTime":
+                        seed = (long) field.getField();
+                        break;
+                    case "xSpawn":
+                        spawnX = (int) field.getField();
+                        break;
+                    case "ySpawn":
+                        spawnY = (int) field.getField();
+                        break;
+                    case "zSpawn":
+                        spawnZ = (int) field.getField();
+                        break;
+                    case "tickCount":
+                        time = (int) field.getField();
+                        break;
+                    case "blocks":
+                        blocks = ((BlocksField) field).getBlocks();
+                        break;
+                    case "blockMap":
+                        blockMap = ((ClassField) field);
+                        break;
+                    case "width":
+                        // We get the short value of the stringified value as it could either be a short or an int, depending on the version it was saved in.
+                        width = Short.parseShort(String.valueOf(field.getField()));
+                        break;
+                    case "height":
+                        // We get the short value of the stringified value as it could either be a short or an int, depending on the version it was saved in.
+                        length = Short.parseShort(String.valueOf(field.getField())); // Was changed from "height" to "length" in Indev.
+
+                        break;
+                    case "depth":
+                        // We get the short value of the stringified value as it could either be a short or an int, depending on the version it was saved in.
+                        height = Short.parseShort(String.valueOf(field.getField())); // Was changed from "depth" to "height" in Indev.
+
+                        break;
+                }
 			}
 			if (blocks == null) error(minecraft, parent, "No blocks found!");
 			else {
 				if (blocks.length == (width * height * length)) {
+					NbtCompound playerData = null;
 					if (convertPlayerData) {
 						if (blockMap != null) {
-							blockMap.getClassField().getFields().forEach((field) -> {
+							for (Field field : blockMap.getClassField().getFields()) {
 								if (field.getFieldName().equals("all")) {
-									((ClassField)field).getArrayList().forEach(entityData -> {
+									for (Class entityData : ((ClassField)field).getArrayList()) {
 										if (entityData.getName().equals("com.mojang.minecraft.player.Player")) {
 											NbtCompound data = new NbtCompound();
 											data.putString("id", "LocalPlayer");
@@ -177,22 +197,24 @@ public class Convert {
 											data.putShort("HurtTime", (short) 0);
 											data.putShort("Health", (short) 20);
 											data.putShort("Fire", (short) -20);
-											playerData[0] = data;
+											playerData = data;
+											break;
 										}
-									});
+									}
 								}
-							});
+							}
 						}
 					}
+					int maxYOffset = 128 - height;
+					if (maxYOffset > 0) minecraft.m_6408915(new SliderConfirmScreen(new ConvertWorldInfoScreen(parent, "Setting y offset...", worldName, input, width, length, height, null, playerData, new WorldData(blocks, time, seed, (short) spawnX, (short) spawnY, (short) spawnZ)), "Do you want to offset your world vertically?", "Select how many blocks upwards you want to shift your world", 0, "Y Offset", maxYOffset, "Confirm"));
+					else convertClassicFinish(minecraft, parent, worldName, width, height, length, blocks, playerData, time, seed, (short) spawnX, (short) spawnY, (short) spawnZ, 0);
 				} else throw new ConvertFailException("Invalid block amount!");
-				int maxYOffset = 128 - height;
-				if (maxYOffset > 0) minecraft.m_6408915(new SliderConfirmScreen(new ConvertWorldInfoScreen(parent, "Setting y offset...", worldName, input, width, length, height, null, playerData[0], new WorldData(blocks, time, seed, (short) spawnX, (short) spawnY, (short) spawnZ)), "Do you want to offset your world vertically?", "Select how many blocks upwards you want to shift your world", 0, "Y Offset", maxYOffset, "Confirm"));
-				else convertClassicFinish(minecraft, parent, worldName, width, height, length, blocks, playerData[0], time, seed, (short) spawnX, (short) spawnY, (short) spawnZ, 0);
 			}
 		} catch (Exception error) {
 			error(minecraft, parent, error.getLocalizedMessage());
 		}
 	}
+
 	private static void convertIndev(C_5664496 minecraft, Screen parent, final String worldName, final boolean convertPlayerData, final File input) {
 		try {
 			NbtCompound nbtCompound = SaveModLevel.load(Files.newInputStream(input.toPath()));
@@ -229,6 +251,7 @@ public class Convert {
 			error(minecraft, parent, error.getLocalizedMessage());
 		}
 	}
+
 	private static void convertClassicFinish(C_5664496 minecraft, Screen parent, String worldName, short width, short height, short length, byte[] blocks, NbtCompound player, long time, long seed, short spawnX, short spawnY, short spawnZ, int yOffset) {
 		try {
 			File file = new File(SaveHelper.getSavesDir(), worldName);
@@ -239,6 +262,7 @@ public class Convert {
 			error(minecraft, parent, error.getLocalizedMessage());
 		}
 	}
+
 	private static void convertIndevFinish(C_5664496 minecraft, Screen parent, String worldName, short width, short height, short length, NbtCompound nbtCompound, NbtCompound player, int yOffset) {
 		try {
 			NbtCompound map = nbtCompound.getCompound("Map");
@@ -263,6 +287,7 @@ public class Convert {
 			error(minecraft, parent, error.getLocalizedMessage());
 		}
 	}
+
 	private static void convertTileEntities(File dir, NbtList tileEntities, int yOffset) throws IOException {
 		for (int i = 0; i < tileEntities.size(); i++) {
 			setOverlay("Converting level", "Converting tile entities... (" + i + "/" + tileEntities.size() + ")");
@@ -296,12 +321,14 @@ public class Convert {
 			}
 		}
 	}
+
 	private static long calculateSizeOnDisk(final File dir, final short width, final short length) {
 		long sizeOnDisk = 0L;
 		int total = ((width / 16) * (length / 16));
 		for (int chunk = 0; chunk < total; chunk++) sizeOnDisk += SaveHelper.getChunkFile(dir, chunk % (width / 16), chunk / (width / 16)).length();
 		return sizeOnDisk;
 	}
+
 	private static void convertBlocks(final File dir, final short width, final short height, final short length, final byte[] blocks, final byte[] blocksData, final long ticks, final int yOffset) throws ConvertFailException, IOException {
 		// inf-20100227 changed the world height from 256, to 127.
 		// https://minecraft.wiki/w/Java_Edition_Infdev_20100227-1414
@@ -321,30 +348,37 @@ public class Convert {
 				level.putInt("xPos", x);
 				level.putInt("zPos", z);
 				level.putLong("LastUpdate", ticks);
-				level.putByteArray("Blocks", getBlocksForChunk(x, z, width, height, length, blocks, yOffset));
+				byte[] chunkBlocks = getBlocksForChunk(x, z, width, height, length, blocks, yOffset);
+				level.putByteArray("Blocks", chunkBlocks);
 				level.putByteArray("Data", blocksData != null ? getBlockDataForChunk(x, z, width, height, length, blocksData, yOffset, false) : new byte[16 * 16 * 64]);
 				level.putByteArray("SkyLight", new byte[16 * 16 * 128]);
 				level.putByteArray("BlockLight", blocksData != null ? getBlockDataForChunk(x, z, width, height, length, blocksData, yOffset, true) : new byte[16 * 16 * 64]);
-				level.putByteArray("HeightMap", calcHeightMap());
+				level.putByteArray("HeightMap", calcHeightMap(chunkBlocks));
 				level.put("TileEntities", new NbtList());
 				chunkData.put("Level", level);
 				SaveModLevel.save(chunkData, Files.newOutputStream(chunkFile.toPath()));
 			}
 		} else throw new ConvertFailException("Invalid block amount!");
 	}
-	private static byte[] calcHeightMap() {
-		// It's not perfect (e.g transparent blocks probably wouldn't be counted), but the game should fix this when saving anyway.
+
+	private static byte[] calcHeightMap(final byte[] chunkBlocks) {
 		byte[] heightMap = new byte[16 * 16];
 		for (int x = 0; x < 16; x++) {
 			for (int z = 0; z < 16; z++) {
-				for (int y = 0; y < 128; y++) {
-					int currentHeight = 127 - y;
-					heightMap[x * 16 + z] = (byte) (currentHeight + 1);
+				byte h = 0;
+				for (int y = 127; y >= 0; y--) {
+					byte block = chunkBlocks[(y * 16 + z) * 16 + x];
+					if (block != 0) {
+						h = (byte) (y + 1);
+						break;
+					}
 				}
+				heightMap[x * 16 + z] = h;
 			}
 		}
 		return heightMap;
 	}
+
 	private static byte[] getBlocksForChunk(final int x, final int z, final int width, final short height, final int length, final byte[] blocks, final int yOffset) {
 		byte[] chunk = new byte[16 * 16 * 128];
 		int index = 0;
@@ -365,34 +399,28 @@ public class Convert {
 		}
 		return chunk;
 	}
+
 	private static byte[] getBlockDataForChunk(final int x, final int z, final int width, final short height, final int length, final byte[] blockData, final int yOffset, final boolean isLight) {
-		// TODO: There is an issue here somewhere me thinks.
 		byte[] output = new byte[16 * 16 * 64];
 		int index = 0;
 		for (int xIndex = x * 16; xIndex < x * 16 + 16; xIndex++) {
 			for (int zIndex = z * 16; zIndex < z * 16 + 16; zIndex++) {
-				for (int y = 0; y < yOffset; y += 2) {
-					index += 1;
+				int y = 0;
+				y += yOffset;
+				while (y < height) {
+					byte a = blockData[(y * length + zIndex) * width + xIndex];
+					byte b = 0;
+					if (y + 1 < height) b = blockData[((y + 1) * length + zIndex) * width + xIndex];
+                    output[index] = (byte) (((a & 0x0F) & 0xF) | ((b & 0x0F) << 4));
+                    index++;
+					y += 2;
 				}
-				for (int yIndex = 0; yIndex < height; yIndex += 2) {
-					byte a = blockData[(yIndex * length + zIndex) * width + xIndex];
-					byte b = blockData[((yIndex + 1) * length + zIndex) * width + xIndex];
-					if (isLight) {
-						byte lightByte = (byte) ((a & 15) * 16 + b & 15);
-						if (lightByte > 127) lightByte -= (byte) 256;
-						output[index] = lightByte;
-					} else {
-						byte dataByte = (byte) ((a >> 4) * 16 + b >> 4);
-						if (dataByte > 127) dataByte -= (byte) 256;
-						output[index] = dataByte;
-					}
-					index += 1;
-				}
-				index += ((128 - height - yOffset) / 2);
+				while (index % 64 != 0) index++;
 			}
 		}
 		return output;
 	}
+
 	private static void createLevel(C_5664496 minecraft, Screen parent, final File dir, final long seed, final int spawnX, final int spawnY, final int spawnZ, final long time, final long sizeOnDisk, final @Nullable NbtCompound player) {
 		try {
 			setOverlay("Converting level", "Writing level data...");
@@ -414,15 +442,19 @@ public class Convert {
 			error(minecraft, parent, error.getLocalizedMessage());
 		}
 	}
+
 	private static void done(C_5664496 minecraft, Screen parent, final String worldName) {
+		System.gc();
 		if (SaveConfig.instance.shouldLoadAfterConvert.value()) {
 			((SaveModMinecraft)minecraft).save$set(worldName);
 			minecraft.m_6408915(null);
 		} else minecraft.m_6408915(new SaveInfoScreen(parent, "Convert World", "Successfully converted world to '" + worldName + "'!", InfoScreen.Type.DIRT, true));
 	}
+
 	private static void error(C_5664496 minecraft, Screen parent, String error) {
 		minecraft.m_6408915(new SaveInfoScreen(parent, "Error!", ((error == null || error.isEmpty()) ? "Failed to convert world!" : error), InfoScreen.Type.ERROR, true));
 	}
+
 	public enum Version {
 		classic("classic"),
 		indev("indev");
@@ -434,14 +466,17 @@ public class Convert {
 			return this.name;
 		}
 	}
+
 	private static void setOverlay(String title, String message) {
 		setOverlay(title, message, -1);
 	}
+
 	private static void setOverlay(String title, String message, int value) {
 		SaveHelper.infoOverlay.setTitle(title);
 		SaveHelper.infoOverlay.setDescription(message);
 		SaveHelper.infoOverlay.setLoading(value);
 	}
+
 	public static class WorldData {
 		public byte[] blocks;
 		public long time;

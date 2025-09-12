@@ -26,7 +26,7 @@ import java.nio.file.Files;
 public class SaveModWorld extends World {
 	public String name;
 	private File dir;
-	private NbtCompound f_4300305;
+	private NbtCompound player;
 	private long seed = 0L;
 	public long sizeOnDisk = 0L;
 	private boolean isNewWorld;
@@ -46,7 +46,7 @@ public class SaveModWorld extends World {
 				this.spawnpointZ = nbtCompound.getInt("SpawnZ");
 				this.ticks = (int)nbtCompound.getLong("Time");
 				this.sizeOnDisk = nbtCompound.getLong("SizeOnDisk");
-				if (nbtCompound.containsKey("Player")) this.f_4300305 = nbtCompound.getCompound("Player");
+				if (nbtCompound.containsKey("Player")) this.player = nbtCompound.getCompound("Player");
 				else Data.getVersion().sendToLog(LogType.WARN, "No player data found!");
 			} catch (Exception error) {
 				Data.getVersion().sendToLog(LogType.ERROR, error.getLocalizedMessage());
@@ -60,7 +60,7 @@ public class SaveModWorld extends World {
 		}
 
 		this.chunkSource = new SaveModChunkCache(this, this.dir, new SaveModOverworldChunkGenerator(this, this.seed));
-		this.save(false);
+		if (this.isNewWorld) this.save(false);
 	}
 	public static NbtCompound get(File file, String string) {
 		file = new File(file, "saves");
@@ -89,9 +89,9 @@ public class SaveModWorld extends World {
 		}
 	}
 	public final void addPlayer() {
-		if (this.f_4300305 != null) {
-			((SaveModEntity)this.f_6053391).save$readEntityNbt(this.f_4300305);
-			this.f_4300305 = null;
+		if (this.player != null) {
+			((SaveModEntity)this.f_6053391).save$readEntityNbt(this.player);
+			this.player = null;
 		}
 		if (this.isNewWorld) {
 			if (SaveConfig.instance.starterItems.value()) Data.Resources.minecraft.f_1273243.m_9083158();
@@ -190,7 +190,7 @@ public class SaveModWorld extends World {
 		else Data.getVersion().sendToLog(LogType.WARN, "Skipping TileEntity with id " + nbtCompound.getString("id"));
 		return blockEntity;
 	}
-	public void waitIfSaving() {
+	public void save() {
 		this.save(true);
 	}
 	private int saveTicks = 0;

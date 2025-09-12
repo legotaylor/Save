@@ -16,20 +16,15 @@ import java.util.zip.GZIPOutputStream;
 
 public class SaveModLevel {
 	public static NbtCompound load(InputStream inputStream) throws IOException {
-		DataInputStream dataInputStream = new DataInputStream(new GZIPInputStream(inputStream));
-		NbtCompound var5;
-		try {
-			NbtElement var1;
-			if (!((var1 = NbtElement.deserialize(dataInputStream)) instanceof NbtCompound)) throw new IOException("Root tag must be a named compound tag");
-			var5 = (NbtCompound)var1;
-		} finally {
-			inputStream.close();
+		try (GZIPInputStream gzipInput = new GZIPInputStream(new BufferedInputStream(inputStream)); DataInputStream dataInput = new DataInputStream(gzipInput)) {
+			NbtElement root = NbtElement.deserialize(dataInput);
+			if (!(root instanceof NbtCompound)) throw new IOException("Root tag must be a named compound tag");
+			return (NbtCompound) root;
 		}
-		return var5;
 	}
 	public static void save(NbtCompound nbtCompound, OutputStream outputStream) throws IOException {
-		try (DataOutputStream dataOutputStream = new DataOutputStream(new GZIPOutputStream(outputStream))) {
-			NbtElement.serialize(nbtCompound, dataOutputStream);
+		try (BufferedOutputStream output = new BufferedOutputStream(outputStream); GZIPOutputStream gzipOutput = new GZIPOutputStream(output); DataOutputStream dataOutput = new DataOutputStream(gzipOutput)) {
+			NbtElement.serialize(nbtCompound, dataOutput);
 		}
 	}
 }
